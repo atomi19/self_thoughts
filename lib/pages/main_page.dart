@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'dart:math';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
@@ -14,6 +15,9 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   // contoller for the message input field
   final TextEditingController _messageController = TextEditingController();
+
+  // controller for the edit input field
+  final TextEditingController _editMessageController = TextEditingController();
 
   // list to store messages as a map with id, message and time when they were made
   List<Map<String, dynamic>> _messages = [];
@@ -33,7 +37,7 @@ class _HomePageState extends State<HomePage> {
     if(message.trim().isNotEmpty) {
       setState(() {
         _messages.add({
-          "id": _messages.length + 1,
+          "id": _generateId(),
           "message": message,
           "date": time
         });
@@ -45,9 +49,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   // remove message from the list by its id
-  void _removeMessage(int id) {
+  void _removeMessage(int messageId) {
     setState(() {
-      _messages.removeWhere((message) => message['id'] == id);
+      _messages.removeWhere((message) => message['id'] == messageId);
     });
 
     _saveMessages();
@@ -83,6 +87,100 @@ class _HomePageState extends State<HomePage> {
     return decodedList.cast<Map<String, dynamic>>().toList();
   }
 
+  // generate unique id for message
+  int _generateId() {
+    int messageId;
+    do {
+      messageId = Random().nextInt(1000000);
+    } while (_messages.any((message) => message['id'] == messageId)); // check if id exists
+    return messageId;
+  }
+
+  // show context menu on ListTile click
+  void _showContextMenu(BuildContext context, int messageId) {
+    showModalBottomSheet(
+      context: context, 
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.delete_outlined, color: Colors.red),
+                title: const Text('Delete', style: TextStyle(color: Colors.red)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _removeMessage(messageId);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.edit),
+                title: const Text('Edit'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _editMessage(messageId);
+                },
+              )
+            ],
+          ),
+        );
+      }
+    );
+  }
+
+  // show edit message menu
+  void _editMessage(int messageIdToEdit) {
+    // get index of message
+    int index = _messages.indexWhere((message) => message['id'] == messageIdToEdit);
+
+    // insert old message into edit text field
+    _editMessageController.text = _messages[index]['message'];
+
+    showModalBottomSheet(
+      context: context, 
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 10, 
+            right: 20, 
+            top: 10, 
+            bottom: MediaQuery.of(context).viewInsets.bottom + 15
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _editMessageController,
+                  decoration: InputDecoration(labelText: 'Edit'),
+                  minLines: 1,
+                  maxLines: 10,
+                )
+              ),
+              IconButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    _messages[index]['message'] = _editMessageController.text;
+                    _saveMessages();
+                  });
+                }, 
+                icon: const Icon(Icons.send)
+              )
+            ],
+          ),
+        );
+      }
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -96,34 +194,16 @@ class _HomePageState extends State<HomePage> {
             : ListView.builder(
               itemCount: _messages.length,
               itemBuilder: (context, index) {
-                return Dismissible(
-                  key: ValueKey(_messages[index]['id']),
-                  background: Container(
-                    color: Colors.red,
-                    alignment: Alignment.centerRight,
-                    padding: EdgeInsets.all(10),
-                    child: const Icon(Icons.delete, color: Colors.white),
+                return Container(
+                  margin: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(10)
                   ),
-                  direction: DismissDirection.endToStart,
-                  onDismissed: (direction) {
-                    final messageId = _messages[index]['id'];
-
-                    _removeMessage(messageId);
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Thought has been removed'))
-                    );
-                  },
-                  child: Container(
-                    margin: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(10)
-                    ),
-                    child: ListTile(
-                      title: Text(_messages[index]["message"]),
-                      trailing: Text(_messages[index]["date"]),
-                    ),
+                  child: ListTile(
+                    title: Text(_messages[index]["message"]),
+                    trailing: Text(_messages[index]["date"]),
+                    onTap: () => _showContextMenu(context, _messages[index]['id']),
                   ),
                 );
               }
@@ -137,15 +217,16 @@ class _HomePageState extends State<HomePage> {
               borderRadius: BorderRadius.circular(10)
             ),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
                   child: TextField(
                     minLines: 1,
-                    maxLines: 4,
+                    maxLines: 8,
                     controller: _messageController,
                     decoration: InputDecoration(
                       hintText: 'Type your thoughts',
-                      border: InputBorder.none
+                      border: InputBorder.none,
                     ),
                   )
                 ),
