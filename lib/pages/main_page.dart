@@ -82,11 +82,10 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.edit),
+                leading: const Icon(Icons.edit_outlined),
                 title: const Text('Edit'),
                 onTap: () {
                   Navigator.pop(context);
-                  //_editMessage(messageId, _messageController.text);
                   _showEditDialog(context, messageId);
                 },
               )
@@ -112,7 +111,7 @@ class _HomePageState extends State<HomePage> {
           padding: EdgeInsets.only(
             left: 10, 
             right: 20, 
-            top: 10, 
+            top: 15, 
             bottom: MediaQuery.of(context).viewInsets.bottom + 15
           ),
           child: Row(
@@ -121,17 +120,37 @@ class _HomePageState extends State<HomePage> {
               Expanded(
                 child: TextField(
                   controller: _editMessageController,
-                  decoration: InputDecoration(labelText: 'Edit'),
+                  decoration: InputDecoration(
+                    labelText: 'Edit',
+                    contentPadding: EdgeInsets.all(10),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.grey.shade400)
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.grey.shade400)
+                    ),
+                    border: OutlineInputBorder()
+                  ),
                   minLines: 1,
                   maxLines: 10,
                 )
               ),
-              IconButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _editMessage(messageId, _editMessageController.text);
-                }, 
-                icon: const Icon(Icons.send)
+              SizedBox(width: 5),
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.blue,
+                  border: Border.all(color: Colors.grey.shade400)
+                ),
+                child: IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _editMessage(messageId, _editMessageController.text);
+                  },
+                  icon: const Icon(Icons.arrow_upward, color: Colors.white)
+                )
               )
             ],
           ),
@@ -156,7 +175,7 @@ class _HomePageState extends State<HomePage> {
                 return Container(
                   margin: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(10)
                   ),
                   child: ListTile(
@@ -172,27 +191,42 @@ class _HomePageState extends State<HomePage> {
           Container(
             padding: EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.grey.shade200,
               borderRadius: BorderRadius.circular(10)
             ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
                   child: TextField(
                     minLines: 1,
-                    maxLines: 8,
+                    maxLines: 10,
                     controller: _messageController,
                     decoration: InputDecoration(
+                      contentPadding: EdgeInsets.all(10),
                       hintText: 'Type your thoughts',
-                      border: InputBorder.none,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey.shade400)
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey.shade400)
+                      ),
+                      border: OutlineInputBorder()
                     ),
                   )
                 ),
+                SizedBox(width: 5),
                 // send button to add messages
-                IconButton(
-                  onPressed: () => _addMessage(_messageController.text),
-                  icon: const Icon(Icons.send)
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.blue,
+                    border: Border.all(color: Colors.grey.shade400)
+                  ),
+                  child: IconButton(
+                    onPressed: () => _addMessage(_messageController.text),
+                    icon: const Icon(Icons.arrow_upward, color: Colors.white)
+                  ),
                 )
               ],
             ),
