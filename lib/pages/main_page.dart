@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
-import 'dart:math';
+import 'package:self_thoughts/message_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
@@ -15,36 +13,25 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   // contoller for the message input field
   final TextEditingController _messageController = TextEditingController();
-
   // controller for the edit input field
   final TextEditingController _editMessageController = TextEditingController();
-
   // list to store messages as a map with id, message and time when they were made
   List<Map<String, dynamic>> _messages = [];
 
   @override
   void initState() {
     super.initState();
-    // load messages from shared_preferences when app starts
     _loadMessages();
   }
 
   // add new message to list 
-  void _addMessage() {
-    String message = _messageController.text;
-    String time = _getTime();
-
+  void _addMessage(String message) {
     if(message.trim().isNotEmpty) {
       setState(() {
-        _messages.add({
-          "id": _generateId(),
-          "message": message,
-          "date": time
-        });
+        _messages.add(MessageService.createMessage(message));
       });
-      
-      // save list to shared_preferences
-      _saveMessages();
+      MessageService.saveMessages(_messages);
+      _messageController.clear();
     }
   }
 
@@ -53,47 +40,25 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _messages.removeWhere((message) => message['id'] == messageId);
     });
-
-    _saveMessages();
+    MessageService.saveMessages(_messages);
   }
 
-  // get time when message were made, like 09:59
-  String _getTime() {
-    DateTime date = DateTime.now();
-
-    String time = '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-    return time;
-  }
-
-  // save messages to shared_preferences
-  Future<void> _saveMessages() async {
-    final prefs = await SharedPreferences.getInstance();
-    String messagesJson = json.encode(_messages);
-    await prefs.setString('messages', messagesJson);
+  void _editMessage(int messageId, String newMessage) {
+    setState(() {
+      final int index = _messages.indexWhere((message) => message['id'] == messageId);
+      if(index != -1) {
+        _messages[index]['message'] = newMessage;
+      }
+    });
+    MessageService.saveMessages(_messages);
   }
 
   // load messages from shared_preferences 
-  Future<List<Map<String, dynamic>>> _loadMessages() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    String? messagesJson = prefs.getString('messages') ?? '[]';
-
-    List<dynamic> decodedList = json.decode(messagesJson);
-
+  Future<void> _loadMessages() async {
+    final loadedMessages = await MessageService.loadMessages();
     setState(() {
-      _messages = decodedList.cast<Map<String, dynamic>>().toList();
+      _messages = loadedMessages;
     });
-
-    return decodedList.cast<Map<String, dynamic>>().toList();
-  }
-
-  // generate unique id for message
-  int _generateId() {
-    int messageId;
-    do {
-      messageId = Random().nextInt(1000000);
-    } while (_messages.any((message) => message['id'] == messageId)); // check if id exists
-    return messageId;
   }
 
   // show context menu on ListTile click
@@ -121,7 +86,8 @@ class _HomePageState extends State<HomePage> {
                 title: const Text('Edit'),
                 onTap: () {
                   Navigator.pop(context);
-                  _editMessage(messageId);
+                  //_editMessage(messageId, _messageController.text);
+                  _showEditDialog(context, messageId);
                 },
               )
             ],
@@ -131,12 +97,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // show edit message menu
-  void _editMessage(int messageIdToEdit) {
-    // get index of message
-    int index = _messages.indexWhere((message) => message['id'] == messageIdToEdit);
-
-    // insert old message into edit text field
+  void _showEditDialog(BuildContext context, int messageId) {
+    final index = _messages.indexWhere((message) => message['id'] == messageId);
     _editMessageController.text = _messages[index]['message'];
 
     showModalBottomSheet(
@@ -167,10 +129,7 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  setState(() {
-                    _messages[index]['message'] = _editMessageController.text;
-                    _saveMessages();
-                  });
+                  _editMessage(messageId, _editMessageController.text);
                 }, 
                 icon: const Icon(Icons.send)
               )
@@ -232,10 +191,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 // send button to add messages
                 IconButton(
-                  onPressed: () {
-                    _addMessage();
-                    _messageController.clear();
-                  },
+                  onPressed: () => _addMessage(_messageController.text),
                   icon: const Icon(Icons.send)
                 )
               ],
