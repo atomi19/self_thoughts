@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:self_thoughts/message_service.dart';
+import 'package:flutter/services.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
@@ -45,7 +46,7 @@ class _HomePageState extends State<HomePage> {
 
   void _editMessage(int messageId, String newMessage) {
     setState(() {
-      final int index = _messages.indexWhere((message) => message['id'] == messageId);
+      final int index = MessageService.findIndexOfMessage(_messages, messageId);
       if(index != -1) {
         _messages[index]['message'] = newMessage;
       }
@@ -59,6 +60,11 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _messages = loadedMessages;
     });
+  }
+
+  void _copyToClipboard(int messageId) {
+    final int index = MessageService.findIndexOfMessage(_messages, messageId);
+    Clipboard.setData(ClipboardData(text: _messages[index]['message']));
   }
 
   // show context menu on ListTile click
@@ -88,6 +94,14 @@ class _HomePageState extends State<HomePage> {
                   Navigator.pop(context);
                   _showEditDialog(context, messageId);
                 },
+              ),
+              ListTile(
+                leading: const Icon(Icons.copy_rounded),
+                title: const Text('Copy'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  _copyToClipboard(messageId);
+                },
               )
             ],
           ),
@@ -97,7 +111,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showEditDialog(BuildContext context, int messageId) {
-    final index = _messages.indexWhere((message) => message['id'] == messageId);
+    final int index = MessageService.findIndexOfMessage(_messages, messageId);
     _editMessageController.text = _messages[index]['message'];
 
     showModalBottomSheet(

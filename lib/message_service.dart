@@ -5,9 +5,9 @@ import 'dart:math';
 class MessageService {
   static Map<String, dynamic> createMessage(String message) {
     return {
-      'id': _generateId(),
+      'id': generateId(),
       'message': message,
-      'date': _getTime()
+      'date': getTime()
     };
   }
 
@@ -27,13 +27,18 @@ class MessageService {
   }
 
   // get time when message were made, like 09:59
-  static String _getTime() {
+  static String getTime() {
     final DateTime date = DateTime.now();
     return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 
   // generate unique id for message
-  static int _generateId() {
+  static int generateId() {
     return Random().nextInt(1000000);
+  }
+  
+  // find index of message
+  static int findIndexOfMessage(List<Map<String,dynamic>> messages, int messageId) {
+    return messages.indexWhere((message) => message['id'] == messageId);
   }
 }
