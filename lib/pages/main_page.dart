@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:self_thoughts/message_service.dart';
 import 'package:flutter/services.dart';
+import 'package:self_thoughts/widgets/context_menu.dart';
+import 'package:self_thoughts/widgets/message_list.dart';
+import 'package:self_thoughts/widgets/message_input.dart';
+import 'package:self_thoughts/widgets/edit_dialog.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
@@ -67,112 +71,6 @@ class _HomePageState extends State<HomePage> {
     Clipboard.setData(ClipboardData(text: _messages[index]['message']));
   }
 
-  // show context menu on ListTile click
-  void _showContextMenu(BuildContext context, int messageId) {
-    showModalBottomSheet(
-      context: context, 
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.delete_outlined, color: Colors.red),
-                title: const Text('Delete', style: TextStyle(color: Colors.red)),
-                onTap: () {
-                  Navigator.pop(context);
-                  _removeMessage(messageId);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.edit_outlined),
-                title: const Text('Edit'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showEditDialog(context, messageId);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.copy_rounded),
-                title: const Text('Copy'),
-                onTap: () async {
-                  Navigator.pop(context);
-                  _copyToClipboard(messageId);
-                },
-              )
-            ],
-          ),
-        );
-      }
-    );
-  }
-
-  void _showEditDialog(BuildContext context, int messageId) {
-    final int index = MessageService.findIndexOfMessage(_messages, messageId);
-    _editMessageController.text = _messages[index]['message'];
-
-    showModalBottomSheet(
-      context: context, 
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 10, 
-            right: 20, 
-            top: 15, 
-            bottom: MediaQuery.of(context).viewInsets.bottom + 15
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _editMessageController,
-                  decoration: InputDecoration(
-                    labelText: 'Edit',
-                    contentPadding: EdgeInsets.all(10),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.grey.shade400)
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.grey.shade400)
-                    ),
-                    border: OutlineInputBorder()
-                  ),
-                  minLines: 1,
-                  maxLines: 10,
-                )
-              ),
-              SizedBox(width: 5),
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.blue,
-                  border: Border.all(color: Colors.grey.shade400)
-                ),
-                child: IconButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _editMessage(messageId, _editMessageController.text);
-                  },
-                  icon: const Icon(Icons.arrow_upward, color: Colors.white)
-                )
-              )
-            ],
-          ),
-        );
-      }
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -180,71 +78,13 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           // display ListTile with messages or placeholder if there is no messages
-          Expanded(
-            child: _messages.isEmpty
-            ? const Center(child: Text('No thoughts available', style: TextStyle(fontSize: 25)))
-            : ListView.builder(
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                return Container(
-                  margin: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(10)
-                  ),
-                  child: ListTile(
-                    title: Text(_messages[index]["message"]),
-                    trailing: Text(_messages[index]["date"]),
-                    onTap: () => _showContextMenu(context, _messages[index]['id']),
-                  ),
-                );
-              }
-            )
-          ),
+          Expanded(child: MessageList(messages: _messages, onItemTap: (context, messageId) {
+            showContextMenu(context, messageId, _messages, _removeMessage, _copyToClipboard, (context, messageId) {
+              showEditDialog(context, messageId, _editMessageController, _messages, _editMessage);
+            });
+          })),
           // input field for adding messages
-          Container(
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10)
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    minLines: 1,
-                    maxLines: 10,
-                    controller: _messageController,
-                    decoration: InputDecoration(
-                      contentPadding: EdgeInsets.all(10),
-                      hintText: 'Type your thoughts',
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.grey.shade400)
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.grey.shade400)
-                      ),
-                      border: OutlineInputBorder()
-                    ),
-                  )
-                ),
-                SizedBox(width: 5),
-                // send button to add messages
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.blue,
-                    border: Border.all(color: Colors.grey.shade400)
-                  ),
-                  child: IconButton(
-                    onPressed: () => _addMessage(_messageController.text),
-                    icon: const Icon(Icons.arrow_upward, color: Colors.white)
-                  ),
-                )
-              ],
-            ),
-          )
+          MessageInput(controller: _messageController, onSend: _addMessage)
         ],
       ),
     );
