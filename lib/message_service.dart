@@ -12,16 +12,16 @@ class MessageService {
   }
 
   // save messages to shared_preferences
-  static Future<void> saveMessages(List<Map<String,dynamic>> messages) async {
+  static Future<void> saveMessages(List<Map<String,dynamic>> messages, String keyName) async {
     final prefs = await SharedPreferences.getInstance();
     final messagesJson = json.encode(messages);
-    await prefs.setString('messages', messagesJson);
+    await prefs.setString(keyName, messagesJson);
   }
   
   // load messages from shared_preferences
-  static Future<List<Map<String, dynamic>>> loadMessages() async {
+  static Future<List<Map<String, dynamic>>> loadMessages(String keyName) async {
     final prefs = await SharedPreferences.getInstance();
-    final messagesJson = prefs.getString('messages') ?? '[]';
+    final messagesJson = prefs.getString(keyName) ?? '[]';
     final List<dynamic> decodedList = json.decode(messagesJson);
     return decodedList.cast<Map<String, dynamic>>().toList();
   }

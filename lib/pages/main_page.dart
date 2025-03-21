@@ -5,6 +5,8 @@ import 'package:self_thoughts/widgets/context_menu.dart';
 import 'package:self_thoughts/widgets/message_list.dart';
 import 'package:self_thoughts/widgets/message_input.dart';
 import 'package:self_thoughts/widgets/edit_dialog.dart';
+import 'package:self_thoughts/widgets/custom_app_bar.dart';
+import 'package:self_thoughts/widgets/trash_context_menu.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
@@ -22,11 +24,15 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _editMessageController = TextEditingController();
   // list to store messages as a map with id, message and time when they were made
   List<Map<String, dynamic>> _messages = [];
+  List<Map<String, dynamic>> _trash = [];
+  static const String messagesKey = 'messages';
+  static const String trashKey = 'trash';
 
   @override
   void initState() {
     super.initState();
-    _loadMessages();
+    _loadMessages(messagesKey);
+    _loadMessages(trashKey);
   }
 
   // add new message to list 
@@ -35,17 +41,18 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _messages.add(MessageService.createMessage(message));
       });
-      MessageService.saveMessages(_messages);
+      MessageService.saveMessages(_messages, messagesKey);
       _messageController.clear();
     }
   }
 
   // remove message from the list by its id
   void _removeMessage(int messageId) {
+    _addMessageToTrash(messageId);
     setState(() {
       _messages.removeWhere((message) => message['id'] == messageId);
     });
-    MessageService.saveMessages(_messages);
+    MessageService.saveMessages(_messages, messagesKey);
   }
 
   void _editMessage(int messageId, String newMessage) {
@@ -55,14 +62,18 @@ class _HomePageState extends State<HomePage> {
         _messages[index]['message'] = newMessage;
       }
     });
-    MessageService.saveMessages(_messages);
+    MessageService.saveMessages(_messages, messagesKey);
   }
 
   // load messages from shared_preferences 
-  Future<void> _loadMessages() async {
-    final loadedMessages = await MessageService.loadMessages();
+  Future<void> _loadMessages(String keyName) async {
+    final loadedMessages = await MessageService.loadMessages(keyName);
     setState(() {
-      _messages = loadedMessages;
+      if(keyName == messagesKey) {
+        _messages = loadedMessages;
+      } else if(keyName == trashKey) {
+        _trash = loadedMessages;
+      }
     });
   }
 
@@ -71,10 +82,48 @@ class _HomePageState extends State<HomePage> {
     Clipboard.setData(ClipboardData(text: _messages[index]['message']));
   }
 
+  void _addMessageToTrash(int messageId) {
+    _trash.add(_messages.firstWhere((message) => message['id'] == messageId));
+    MessageService.saveMessages(_trash, trashKey);
+  }
+
+  void _deleteMessageForever(int messageId) {
+    final int index = MessageService.findIndexOfMessage(_trash, messageId);
+    _trash.removeAt(index);
+    MessageService.saveMessages(_trash, trashKey);
+  }
+
+  void _recoverMessageFromTrash(int messageId) {
+    final int index = MessageService.findIndexOfMessage(_trash, messageId);
+    _messages.add(_trash[index]);
+    _trash.removeAt(index);
+    MessageService.saveMessages(_messages, messagesKey);
+    MessageService.saveMessages(_trash, trashKey);
+  }
+
+  void _deleteAllMessagesInTrash() {
+    _trash.clear();
+    MessageService.saveMessages(_trash, trashKey);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: CustomAppBar(
+        trashCount: _trash.length, 
+        onTrashSelected: () {
+          showTrashDialog(
+            context, 
+            _trash.length, 
+            _trash, 
+            _deleteMessageForever, 
+            _recoverMessageFromTrash, 
+            _deleteAllMessagesInTrash,
+            setState
+          );
+        }
+      ),
       body: Column(
         children: [
           // display ListTile with messages or placeholder if there is no messages
