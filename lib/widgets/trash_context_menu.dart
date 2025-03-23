@@ -61,7 +61,14 @@ void showTrashDialog(
                   ],
                 ),
               ),
-              Expanded(
+              trash.isEmpty
+              ? Expanded(
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Text('No items in trash', style: TextStyle(fontSize: 25))
+                )
+              )
+              : Expanded(
                 child: ListView.builder(
                   itemCount: trash.length,
                   itemBuilder: (context, index) {
@@ -77,6 +84,9 @@ void showTrashDialog(
                         onTap: () {
                           showModalBottomSheet(
                             context: context,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
+                            ),
                             builder: (context) {
                               return Padding(
                                 padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
