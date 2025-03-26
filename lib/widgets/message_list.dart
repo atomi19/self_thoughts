@@ -19,12 +19,28 @@ class MessageList extends StatelessWidget {
             margin: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
             decoration: BoxDecoration(
               color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(10)
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(10),
+                bottomRight: Radius.circular(10)
+              )
             ),
-            child: ListTile(
-              title: Text(messages[index]['message']!),
-              trailing: Text(messages[index]['date']!),
-              onTap: () => onItemTap(context, messages[index]['id']!),
+            child: Column(
+              children: [
+                Container(
+                  color: Colors.grey.shade200,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(0, 10, 10, 0),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(messages[index]['date']),
+                    ),
+                  ),
+                ),
+                ListTile(
+                  title: Text(messages[index]['message']),
+                  onTap: () => onItemTap(context, messages[index]['id']),
+                )
+              ],
             ),
           );
         }

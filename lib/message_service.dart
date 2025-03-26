@@ -29,7 +29,7 @@ class MessageService {
   // get time when message were made, like 09:59
   static String getTime() {
     final DateTime date = DateTime.now();
-    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year.toString()} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 
   // generate unique id for message
