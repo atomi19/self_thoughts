@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:self_thoughts/message_service.dart';
 import 'package:flutter/services.dart';
+import 'package:self_thoughts/pages/trash_page.dart';
 import 'package:self_thoughts/widgets/context_menu.dart';
 import 'package:self_thoughts/widgets/message_list.dart';
 import 'package:self_thoughts/widgets/message_input.dart';
 import 'package:self_thoughts/widgets/edit_dialog.dart';
 import 'package:self_thoughts/widgets/custom_app_bar.dart';
-import 'package:self_thoughts/widgets/trash_context_menu.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
@@ -106,23 +106,28 @@ class _HomePageState extends State<HomePage> {
     MessageService.saveMessages(_trash, trashKey);
   }
 
+  void _navigateToTrashPage() {
+    Navigator.push(
+      context, 
+      MaterialPageRoute(
+        builder: (context) => TrashPage(
+          trash: _trash, 
+          deleteMessageForever: _deleteMessageForever, 
+          recoverMessageFromTrash: _recoverMessageFromTrash, 
+          deleteAllMessagesInTrash: _deleteAllMessagesInTrash)
+      )
+    ).then((_) {
+      setState(() {});
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
         trashCount: _trash.length, 
-        onTrashSelected: () {
-          showTrashDialog(
-            context, 
-            _trash.length, 
-            _trash, 
-            _deleteMessageForever, 
-            _recoverMessageFromTrash, 
-            _deleteAllMessagesInTrash,
-            setState
-          );
-        }
+        onTrashSelected: () => _navigateToTrashPage()
       ),
       body: Column(
         children: [

@@ -29,7 +29,7 @@ class MessageList extends StatelessWidget {
                 Container(
                   color: Colors.grey.shade200,
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(0, 10, 10, 0),
+                    padding: EdgeInsets.fromLTRB(0, 2, 10, 2),
                     child: Align(
                       alignment: Alignment.centerRight,
                       child: Text(messages[index]['date']),

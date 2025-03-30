@@ -26,7 +26,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
                 children: [
                   const Icon(Icons.delete_outline),
                   SizedBox(width: 5),
-                  Text('Trash ($trashCount)')
+                  Text('Trash')
                 ],
               )
             )
