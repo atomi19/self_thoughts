@@ -5,8 +5,14 @@ import 'package:flutter/material.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
   final int trashCount;
   final Function onTrashSelected;
+  final Function onSearchSelected;
 
-  const CustomAppBar({required this.trashCount, required this.onTrashSelected, super.key});
+  const CustomAppBar({
+    super.key,
+    required this.trashCount, 
+    required this.onTrashSelected,
+    required this.onSearchSelected
+    });
   
   @override
   Size get preferredSize => Size.fromHeight(50);
@@ -21,6 +27,16 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
           icon: const Icon(Icons.menu),
           itemBuilder: (BuildContext context) => <PopupMenuEntry> [
             PopupMenuItem(
+              value: 'search',
+              child: Row(
+                children: [
+                  const Icon(Icons.search),
+                  SizedBox(width: 5),
+                  const Text('Search')
+                ],
+              )
+            ),
+            PopupMenuItem(
               value: 'trash',
               child: Row(
                 children: [
@@ -32,8 +48,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
             )
           ],
           onSelected: (value) {
-            if(value == 'trash') {
-              onTrashSelected();
+            switch (value) {
+              case 'search':
+                onSearchSelected();
+                break;
+              case 'trash':
+                onTrashSelected();
+                break;
             }
           },
         )

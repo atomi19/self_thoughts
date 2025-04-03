@@ -2,13 +2,14 @@
 
 import 'package:flutter/material.dart';
 
-void showContextMenu(BuildContext context, 
-                    int messageId, 
-                    List<Map<String, dynamic>> messages, 
-                    Function(int) removeMessage, 
-                    Function(int) copyToClipboard, 
-                    Function(BuildContext, int) showEditDialog
-                    ) {
+void showContextMenu(
+  BuildContext context, 
+  int messageId, 
+  List<Map<String, dynamic>> messages, 
+  Function(int) removeMessage, 
+  Function(int) copyToClipboard, 
+  Function(BuildContext, int) showEditDialog
+  ) {
   showModalBottomSheet(
     context: context, 
     shape: RoundedRectangleBorder(

@@ -3,12 +3,13 @@
 import 'package:flutter/material.dart';
 import 'package:self_thoughts/message_service.dart';
 
-void showEditDialog(BuildContext context, 
-                    int messageId, 
-                    TextEditingController editMessageController, 
-                    List<Map<String, dynamic>> messages, 
-                    Function(int, String) editMessage
-                    ) {
+void showEditDialog(
+  BuildContext context, 
+  int messageId, 
+  TextEditingController editMessageController, 
+  List<Map<String, dynamic>> messages, 
+  Function(int, String) editMessage
+  ) {
   final int index = MessageService.findIndexOfMessage(messages, messageId);
   editMessageController.text = messages[index]['message'];
 

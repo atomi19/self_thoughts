@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:self_thoughts/message_service.dart';
 import 'package:flutter/services.dart';
 import 'package:self_thoughts/pages/trash_page.dart';
+import 'package:self_thoughts/pages/search_page.dart';
 import 'package:self_thoughts/widgets/context_menu.dart';
 import 'package:self_thoughts/widgets/message_list.dart';
 import 'package:self_thoughts/widgets/message_input.dart';
@@ -18,11 +19,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // contoller for the message input field
   final TextEditingController _messageController = TextEditingController();
-  // controller for the edit input field
   final TextEditingController _editMessageController = TextEditingController();
-  // list to store messages as a map with id, message and time when they were made
+  final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> _messages = [];
   List<Map<String, dynamic>> _trash = [];
   static const String messagesKey = 'messages';
@@ -121,24 +120,50 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void _navigateToSearchPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SearchPage(
+          searchController: _searchController,
+          messages: _messages,
+        )
+      )
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
         trashCount: _trash.length, 
-        onTrashSelected: () => _navigateToTrashPage()
+        onTrashSelected: () => _navigateToTrashPage(),
+        onSearchSelected: () => _navigateToSearchPage(),
       ),
       body: Column(
         children: [
           // display ListTile with messages or placeholder if there is no messages
-          Expanded(child: MessageList(messages: _messages, onItemTap: (context, messageId) {
-            showContextMenu(context, messageId, _messages, _removeMessage, _copyToClipboard, (context, messageId) {
-              showEditDialog(context, messageId, _editMessageController, _messages, _editMessage);
-            });
+          Expanded(
+            child: MessageList(
+              messages: _messages,
+              onItemTap: (context, messageId) {
+              showContextMenu(
+                context, 
+                messageId, 
+                _messages, 
+                _removeMessage, 
+                _copyToClipboard, 
+                (context, messageId) {
+                showEditDialog(context, messageId, _editMessageController, _messages, _editMessage);
+              }
+            );
           })),
           // input field for adding messages
-          MessageInput(controller: _messageController, onSend: _addMessage)
+          MessageInput(
+            controller: _messageController, 
+            onSend: _addMessage
+          )
         ],
       ),
     );

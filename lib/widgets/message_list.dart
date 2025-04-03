@@ -6,7 +6,10 @@ class MessageList extends StatelessWidget {
   final List<Map<String, dynamic>> messages;
   final Function(BuildContext, int) onItemTap;
 
-  const MessageList({required this.messages, required this.onItemTap, super.key});
+  const MessageList({
+    super.key,
+    required this.messages, 
+    required this.onItemTap});
 
   @override
   Widget build(BuildContext context) {

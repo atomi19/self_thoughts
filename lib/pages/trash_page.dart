@@ -6,11 +6,13 @@ class TrashPage extends StatefulWidget {
   final Function(int) recoverMessageFromTrash;
   final Function() deleteAllMessagesInTrash;
 
-  const TrashPage({super.key,
-                  required this.trash,
-                  required this.deleteMessageForever,
-                  required this.recoverMessageFromTrash,
-                  required this.deleteAllMessagesInTrash});
+  const TrashPage({
+    super.key,
+    required this.trash,
+    required this.deleteMessageForever,
+    required this.recoverMessageFromTrash,
+    required this.deleteAllMessagesInTrash}
+  );
 
   @override
   TrashPageState createState() => TrashPageState();
