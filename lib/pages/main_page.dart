@@ -76,9 +76,23 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // copy message to clipboard
   void _copyToClipboard(int messageId) {
     final int index = MessageService.findIndexOfMessage(_messages, messageId);
     Clipboard.setData(ClipboardData(text: _messages[index]['message']));
+  }
+
+  // pin or unpin message(set 'isPinned' key to false or true)
+  void _togglePin(int messageId) {
+    final int index = MessageService.findIndexOfMessage(_messages, messageId);
+    setState(() {      
+      if(_messages[index]['isPinned'] == true) {
+        _messages[index]['isPinned'] = false;
+      } else {
+        _messages[index]['isPinned'] = true;
+      }
+    });
+    MessageService.saveMessages(_messages, messagesKey);
   }
 
   void _addMessageToTrash(int messageId) {
@@ -148,17 +162,18 @@ class _HomePageState extends State<HomePage> {
             child: MessageList(
               messages: _messages,
               onItemTap: (context, messageId) {
-              showContextMenu(
-                context, 
-                messageId, 
-                _messages, 
-                _removeMessage, 
-                _copyToClipboard, 
-                (context, messageId) {
-                showEditDialog(context, messageId, _editMessageController, _messages, _editMessage);
+                showContextMenu(
+                  context: context, 
+                  messageId: messageId, 
+                  messages: _messages, 
+                  removeMessage: _removeMessage, 
+                  copyToClipboard: _copyToClipboard,
+                  showEditDialog: (context, messageId) => showEditDialog(context, messageId, _editMessageController, _messages, _editMessage),
+                  pinMessage: _togglePin
+                );
               }
-            );
-          })),
+            )
+          ),
           // input field for adding messages
           MessageInput(
             controller: _messageController, 

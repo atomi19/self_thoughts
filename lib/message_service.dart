@@ -7,7 +7,8 @@ class MessageService {
     return {
       'id': generateId(),
       'message': message,
-      'date': getTime()
+      'date': getTime(),
+      'isPinned': false,
     };
   }
 
