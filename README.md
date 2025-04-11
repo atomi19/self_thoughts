@@ -24,7 +24,7 @@ git clone https://github.com/atomi19/password-generator.git
 
 2. Navigate to the project directory:
 ```bash
-cd open-calculator
+cd self_thoughts
 ```
 3. Get dependencies:
 ```bash
