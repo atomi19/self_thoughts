@@ -19,7 +19,7 @@ Self Thoughts is a self-chatting app for storing personal thoughts, notes and me
 ### Installation
 1. Clone the repo
 ```bash
-git clone https://github.com/atomi19/password-generator.git
+git clone https://github.com/atomi19/self_thoughts.git
 ```
 
 2. Navigate to the project directory:
