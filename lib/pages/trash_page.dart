@@ -32,6 +32,7 @@ class TrashPageState extends State<TrashPage> {
         backgroundColor: Colors.red.shade400,
         title: Text('Trash', style: TextStyle(fontSize: 20, color: Colors.white)),
         actions: [
+          // clear trash button
           IconButton(
             onPressed: () {
               showDialog(
@@ -70,6 +71,7 @@ class TrashPageState extends State<TrashPage> {
               child: Text('No items in trash', style: TextStyle(fontSize: 25)),
             )
           )
+          // messages in trash
           : Expanded(
             child: ListView.builder(
               itemCount: widget.trash.length,

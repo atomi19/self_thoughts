@@ -17,6 +17,7 @@ class MessageInput extends StatelessWidget {
       ),
       child: Row(
         children: [
+          // message input field
           Expanded(
             child: TextField(
               minLines: 1,
@@ -38,6 +39,7 @@ class MessageInput extends StatelessWidget {
             )
           ),
           SizedBox(width: 5),
+          // send button
           Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,

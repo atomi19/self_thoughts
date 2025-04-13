@@ -17,6 +17,19 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
   @override
   Size get preferredSize => Size.fromHeight(50);
 
+  PopupMenuItem<String> _buildMenuItem(String text, String value,IconData icon) {
+    return PopupMenuItem<String>(
+      value: value,
+      child: Row(
+        children: [
+          Icon(icon),
+          const SizedBox(width: 5),
+          Text(text),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppBar(
@@ -25,27 +38,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
       actions: [
         PopupMenuButton(
           icon: const Icon(Icons.menu),
-          itemBuilder: (BuildContext context) => <PopupMenuEntry> [
-            PopupMenuItem(
-              value: 'search',
-              child: Row(
-                children: [
-                  const Icon(Icons.search),
-                  SizedBox(width: 5),
-                  const Text('Search')
-                ],
-              )
-            ),
-            PopupMenuItem(
-              value: 'trash',
-              child: Row(
-                children: [
-                  const Icon(Icons.delete_outline),
-                  SizedBox(width: 5),
-                  Text('Trash')
-                ],
-              )
-            )
+          itemBuilder: (context) => [
+            _buildMenuItem('Search', 'search', Icons.search),
+            _buildMenuItem('Trash', 'trash', Icons.delete_outline)
           ],
           onSelected: (value) {
             switch (value) {

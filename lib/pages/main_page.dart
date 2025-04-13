@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:self_thoughts/message_service.dart';
-import 'package:flutter/services.dart';
+// pages
 import 'package:self_thoughts/pages/trash_page.dart';
 import 'package:self_thoughts/pages/search_page.dart';
+// widgets
 import 'package:self_thoughts/widgets/context_menu.dart';
 import 'package:self_thoughts/widgets/message_list.dart';
 import 'package:self_thoughts/widgets/message_input.dart';
@@ -22,8 +23,10 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _messageController = TextEditingController();
   final TextEditingController _editMessageController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
+
   List<Map<String, dynamic>> _messages = [];
   List<Map<String, dynamic>> _trash = [];
+
   static const String messagesKey = 'messages';
   static const String trashKey = 'trash';
 
@@ -54,6 +57,7 @@ class _HomePageState extends State<HomePage> {
     MessageService.saveMessages(_messages, messagesKey);
   }
 
+  // edit message by it's id
   void _editMessage(int messageId, String newMessage) {
     setState(() {
       final int index = MessageService.findIndexOfMessage(_messages, messageId);
@@ -67,55 +71,60 @@ class _HomePageState extends State<HomePage> {
   // load messages from shared_preferences 
   Future<void> _loadMessages(String keyName) async {
     final loadedMessages = await MessageService.loadMessages(keyName);
+
     setState(() {
-      if(keyName == messagesKey) {
-        _messages = loadedMessages;
-      } else if(keyName == trashKey) {
-        _trash = loadedMessages;
+      switch (keyName) {
+        case messagesKey:
+          _messages = loadedMessages;
+          break;
+        case trashKey:
+          _trash = loadedMessages;
+          break;
       }
     });
   }
 
-  // copy message to clipboard
-  void _copyToClipboard(int messageId) {
-    final int index = MessageService.findIndexOfMessage(_messages, messageId);
-    Clipboard.setData(ClipboardData(text: _messages[index]['message']));
-  }
-
-  // pin or unpin message(set 'isPinned' key to false or true)
-  void _togglePin(int messageId) {
-    final int index = MessageService.findIndexOfMessage(_messages, messageId);
-    setState(() {      
-      if(_messages[index]['isPinned'] == true) {
-        _messages[index]['isPinned'] = false;
-      } else {
-        _messages[index]['isPinned'] = true;
-      }
-    });
-    MessageService.saveMessages(_messages, messagesKey);
-  }
-
+  // add message into trash
   void _addMessageToTrash(int messageId) {
-    _trash.add(_messages.firstWhere((message) => message['id'] == messageId));
+    setState(() {
+      MessageService.addMessageToTrash(
+        messages: _messages, 
+        trash: _trash,
+        messageId: messageId
+      );
+    });
     MessageService.saveMessages(_trash, trashKey);
   }
 
+  // delete all messages in trash forever
   void _deleteMessageForever(int messageId) {
-    final int index = MessageService.findIndexOfMessage(_trash, messageId);
-    _trash.removeAt(index);
+    setState(() {
+      MessageService.deleteMessageForever(
+        trash: _trash, 
+        messageId: messageId
+      );
+    });
     MessageService.saveMessages(_trash, trashKey);
   }
 
+  // recover a message from trash
   void _recoverMessageFromTrash(int messageId) {
-    final int index = MessageService.findIndexOfMessage(_trash, messageId);
-    _messages.add(_trash[index]);
-    _trash.removeAt(index);
+    setState(() {
+      MessageService.recoverMessageFromTrash(
+        trash: _trash,
+        messages: _messages, 
+        messageId: messageId
+      );
+    });
     MessageService.saveMessages(_messages, messagesKey);
     MessageService.saveMessages(_trash, trashKey);
   }
 
-  void _deleteAllMessagesInTrash() {
-    _trash.clear();
+  // clear trash
+  void _clearTrash() {
+    setState(() {
+      MessageService.clearTrash(_trash);
+    });
     MessageService.saveMessages(_trash, trashKey);
   }
 
@@ -127,7 +136,8 @@ class _HomePageState extends State<HomePage> {
           trash: _trash, 
           deleteMessageForever: _deleteMessageForever, 
           recoverMessageFromTrash: _recoverMessageFromTrash, 
-          deleteAllMessagesInTrash: _deleteAllMessagesInTrash)
+          deleteAllMessagesInTrash: _clearTrash
+        )
       )
     ).then((_) {
       setState(() {});
@@ -167,9 +177,15 @@ class _HomePageState extends State<HomePage> {
                   messageId: messageId, 
                   messages: _messages, 
                   removeMessage: _removeMessage, 
-                  copyToClipboard: _copyToClipboard,
-                  showEditDialog: (context, messageId) => showEditDialog(context, messageId, _editMessageController, _messages, _editMessage),
-                  pinMessage: _togglePin
+                  copyToClipboard: (messageId) => MessageService.copyToClipboard(_messages, messageId),
+                  showEditDialog: (context, messageId) => showEditDialog(
+                    context, messageId, _editMessageController, _messages, _editMessage),
+                  pinMessage: (messageId) {
+                    setState(() {
+                      MessageService.togglePin(_messages, messageId);
+                    });
+                    MessageService.saveMessages(_messages, messagesKey);
+                  }
                 );
               }
             )
